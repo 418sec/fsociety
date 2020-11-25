@@ -48,6 +48,44 @@ from time import gmtime, strftime, sleep
 Common Functions
 '''
 
+def get_path():
+    """
+    Absolute path of current working directory.
+    """
+    return os.path.dirname(os.path.realpath(__file__)) 
+
+def run_command(cmd_string, cwd='', **kwargs):
+    """
+    Runs an os command using subprocess module.
+    Supports pipe operator.
+    `;`, `&&` and other shell operators not recommended.
+    """
+    piped_commands, exit_codes, procs = cmd_string.split('|'), [], []
+    tasks, output = list(map(str.strip, piped_commands)), None
+    cwd = cwd[1:] if cwd.startswith('$') else os.path.join(get_path(), cwd)
+
+    for task in tasks:
+        args = task.split()
+        if len(procs):
+            proc = subprocess.Popen(
+                args, 
+                stdin=procs[-1].stdout, 
+                stdout=subprocess.PIPE,
+                cwd=cwd,
+            )
+        else:
+            proc = subprocess.Popen(
+                args, 
+                stdout=subprocess.PIPE,
+                cwd=cwd,
+            )
+        procs.append(proc)
+    else:
+        if len(procs):
+            output = procs[-1].communicate()[0]
+            print(output.decode('utf-8'))
+    exit_codes = [ps.wait() for ps in procs]
+    return exit_codes
 
 class color:
     HEADER = '\033[95m'
@@ -63,7 +101,7 @@ class color:
 
 
 def clearScr():
-    os.system('clear')
+    run_command('clear')
 
 
 def yesOrNo():
@@ -189,7 +227,7 @@ class fsociety:
             self.__init__()
         else:
             try:
-                print(os.system(choice))
+                print(run_command(choice))
             except:
                 pass
         self.completed()
@@ -219,9 +257,9 @@ class fsociety:
         self.__init__()
 
     def update(self):
-        os.system("git clone --depth=1 https://github.com/Manisso/fsociety.git")
-        os.system("cd fsociety && bash ./update.sh")
-        os.system("fsociety")
+        run_command("git clone --depth=1 https://github.com/Manisso/fsociety.git")
+        run_command("bash ./update.sh", cwd="fsociety")
+        run_command("fsociety", cwd="fsociety")
 
 
 class sniffingSpoofingMenu:
@@ -458,10 +496,11 @@ class nmap:
         return (os.path.isfile("/usr/bin/nmap") or os.path.isfile("/usr/local/bin/nmap"))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
-        os.system("cd %s && ./configure && make && make install" %
-                  self.installDir)
+        run_command("./configure", cwd="$%s" % self.installDir)
+        run_command("make", cwd="$%s" % self.installDir)
+        run_command("make install", cwd="$%s" % self.installDir)
 
     def run(self):
         clearScr()
@@ -492,13 +531,13 @@ class nmap:
         logPath = "logs/nmap-" + strftime("%Y-%m-%d_%H:%M:%S", gmtime())
         try:
             if response == "1":
-                os.system("nmap -sV -oN %s %s" % (logPath, target))
+                run_command("nmap -sV -oN %s %s" % (logPath, target))
                 response = raw_input(continuePrompt)
             elif response == "2":
-                os.system("nmap -Pn -oN %s %s" % (logPath, target))
+                run_command("nmap -Pn -oN %s %s" % (logPath, target))
                 response = raw_input(continuePrompt)
             elif response == "3":
-                os.system("nmap -A -oN %s %s" % (logPath, target))
+                run_command("nmap -A -oN %s %s" % (logPath, target))
                 response = raw_input(continuePrompt)
             elif response == "99":
                 pass
@@ -525,14 +564,14 @@ class setoolkit:
         return (os.path.isfile("/usr/bin/setoolkit"))
 
     def install(self):
-        os.system("apt-get --force-yes -y install git apache2 python-requests libapache2-mod-php \
+        run_command("apt-get --force-yes -y install git apache2 python-requests libapache2-mod-php \
             python-pymssql build-essential python-pexpect python-pefile python-crypto python-openssl")
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
-        os.system("cd %s && python setup.py install" % self.installDir)
+        run_command("python setup.py install", cwd="$%s" % self.installDir)
 
     def run(self):
-        os.system("setoolkit")
+        run_command("setoolkit")
 
 
 class host2ip:
@@ -586,7 +625,7 @@ class wpscan:
         return (os.path.isdir(self.installDir))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
 
     def menu(self, target):
@@ -604,15 +643,15 @@ class wpscan:
         wpscanOptions = "--no-banner --random-agent --url %s" % target
         try:
             if response == "1":
-                os.system(
+                run_command(
                     "ruby tools/wpscan/wpscan.rb %s --enumerate u --log %s" % (wpscanOptions, logPath))
                 response = raw_input(continuePrompt)
             elif response == "2":
-                os.system(
+                run_command(
                     "ruby tools/wpscan/wpscan.rb %s --enumerate p --log %s" % (wpscanOptions, logPath))
                 response = raw_input(continuePrompt)
             elif response == "3":
-                os.system(
+                run_command(
                     "ruby tools/wpscan/wpscan.rb %s --enumerate --log %s" % (wpscanOptions, logPath))
                 response = raw_input(continuePrompt)
             elif response == "99":
@@ -658,14 +697,14 @@ class CMSmap:
         return (os.path.isdir(self.installDir))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
 
     def run(self, target):
         logPath = "logs/cmsmap-" + \
             strftime("%Y-%m-%d_%H:%M:%S", gmtime()) + ".txt"
         try:
-            os.system("python %s/cmsmap.py -t %s -o %s" %
+            run_command("python %s/cmsmap.py -t %s -o %s" %
                       (self.installDir, target, logPath))
         except:
             pass
@@ -694,12 +733,12 @@ class XSStrike:
         return (os.path.isdir(self.installDir))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
-        os.system("pip install -r %s/requirements.txt" % self.installDir)
+        run_command("pip install -r %s/requirements.txt" % self.installDir)
 
     def run(self):
-        os.system("python %s/xsstrike" % self.installDir)
+        run_command("python %s/xsstrike" % self.installDir)
 
 
 class doork:
@@ -737,15 +776,15 @@ class doork:
         return (os.path.isdir(self.installDir))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
-        os.system("pip install beautifulsoup4 requests Django==1.11")
+        run_command("pip install beautifulsoup4 requests Django==1.11")
 
     def run(self, target):
         logPath = "logs/doork-" + \
             strftime("%Y-%m-%d_%H:%M:%S", gmtime()) + ".txt"
         try:
-            os.system("python %s/doork.py -t %s -o %s" %
+            run_command("python %s/doork.py -t %s -o %s" %
                       (self.installDir, target, logPath))
         except KeyboardInterrupt:
             pass
@@ -773,13 +812,13 @@ class crips:
         return (os.path.isdir(self.installDir) or os.path.isdir("/usr/share/doc/Crips"))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
-        os.system("bash %s/install.sh" % self.installDir)
+        run_command("bash %s/install.sh" % self.installDir)
 
     def run(self):
         try:
-            os.system("crips")
+            run_command("crips")
         except:
             pass
 
@@ -843,11 +882,11 @@ class cupp:
         return (os.path.isdir(self.installDir))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
 
     def run(self):
-        os.system("python %s/cupp.py -i" % self.installDir)
+        run_command("python %s/cupp.py -i" % self.installDir)
 
 
 '''
@@ -903,17 +942,16 @@ class reaver:
         return (os.path.isdir(self.installDir))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
-        os.system(
+        run_command(
             "apt-get -y install build-essential libpcap-dev sqlite3 libsqlite3-dev aircrack-ng pixiewps")
-        os.system("cd %s/" % self.installDir)
-        os.system("./configure")
-        os.system("make")
-        os.system("sudo make install")
+        run_command("./configure", cwd="%s" % self.installDir)
+        run_command("make", cwd="%s" % self.installDir)
+        run_command("sudo make install", cwd="%s" % self.installDir)
 
     def run(self):
-        os.system("reaver --help")
+        run_command("reaver --help")
 
 
 class pixiewps:
@@ -930,14 +968,14 @@ class pixiewps:
         return (os.path.isdir(self.installDir))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
-        os.system("apt-get -y install build-essential")
-        os.system("make")
-        os.system("sudo make install")
+        run_command("apt-get -y install build-essential")
+        run_command("make")
+        run_command("sudo make install")
 
     def run(self):
-        os.system("pixiewps --help")
+        run_command("pixiewps --help")
 
 
 class bluepot:
@@ -953,13 +991,13 @@ class bluepot:
         return (os.path.isdir(self.installDir))
 
     def install(self):
-        os.system("apt-get install libbluetooth-dev")
-        os.system(
+        run_command("apt-get install libbluetooth-dev")
+        run_command(
             "wget -O - https://github.com/andrewmichaelsmith/bluepot/raw/master/bin/bluepot-0.1.tar.gz | tar xfz -")
-        os.system("mv bluepot/ %s/" % self.installDir)
+        run_command("mv bluepot/ %s/" % self.installDir)
 
     def run(self):
-        os.system("sudo java -jar %s/BluePot-0.1.jar" % self.installDir)
+        run_command("sudo java -jar %s/BluePot-0.1.jar" % self.installDir)
 
 
 '''
